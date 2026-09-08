@@ -1,0 +1,22 @@
+{
+  "enforce_global_rules": {
+    "enabled": true,
+    "PreInvocation": [
+      {
+        "type": "command",
+        "command": "node C:/Users/Administrator/.gemini/scripts/enforce_rules.js",
+        "timeout": 10
+      }
+    ]
+  },
+  "voice_notify_on_stop": {
+    "enabled": true,
+    "Stop": [
+      {
+        "type": "command",
+        "command": "node C:/Users/Administrator/.gemini/scripts/voice_notify.js",
+        "timeout": 120
+      }
+    ]
+  }
+}

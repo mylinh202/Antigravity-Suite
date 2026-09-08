@@ -1,0 +1,28 @@
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime & Process artifacts
+*.pid
+*.wav
+*.tmp
+temp/
+tmp/
+
+# Dependency directories
+node_modules/
+
+# OS specific files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE local caches
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/

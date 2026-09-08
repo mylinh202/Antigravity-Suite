@@ -1,0 +1,25 @@
+{
+  "name": "antigravity-context-monitor",
+  "displayName": "Antigravity Context Monitor",
+  "description": "Hien thi dung luong Context va canh bao nguong 75% tren Status Bar thoi gian thuc",
+  "version": "1.0.0",
+  "publisher": "local-tools",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "*"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "antigravityContext.showDetails",
+        "title": "Antigravity: Context Details & Actions"
+      }
+    ]
+  }
+}
