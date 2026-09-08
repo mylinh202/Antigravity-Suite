@@ -71,22 +71,3 @@ Script sẽ tự động:
 2. Cài đặt cả 2 extension vào thư mục `~/.antigravity-ide/extensions/` và `~/.vscode/extensions/`.
 3. Hoàn tất trong vài giây mà không cần thao tác thủ công.
 
----
-
-## 📤 Hướng dẫn đưa lên Git (GitHub / GitLab)
-
-Để đưa kho lưu trữ này lên GitHub hoặc GitLab cá nhân:
-
-1. **Khởi tạo và commit mã nguồn** (đã được tạo sẵn):
-   ```bash
-   git status
-   ```
-
-2. **Tạo một Repository mới** trên GitHub / GitLab (ví dụ: `antigravity-suite`).
-
-3. **Gắn liên kết từ xa (Remote) và đẩy mã lên**:
-   ```bash
-   git remote add origin https://github.com/<tai-khoan-cua-dai-ca>/antigravity-suite.git
-   git branch -M main
-   git push -u origin main
-   ```
