@@ -44,10 +44,18 @@ function killPreviousSpeech(wsKey) {
     try {
       const pid = parseInt(fs.readFileSync(pidFile, 'utf-8').trim(), 10);
       if (pid && !isNaN(pid)) {
-        spawnSync('taskkill', ['/F', '/T', '/PID', pid.toString()], {
-          stdio: 'ignore',
-          windowsHide: true
-        });
+        if (process.platform === 'win32') {
+          spawnSync('taskkill', ['/F', '/T', '/PID', pid.toString()], {
+            stdio: 'ignore',
+            windowsHide: true
+          });
+        } else {
+          try {
+            process.kill(-pid, 'SIGKILL');
+          } catch (e) {
+            try { process.kill(pid, 'SIGKILL'); } catch (e2) {}
+          }
+        }
         log(`[${wsKey}] Killed previous speech PID: ${pid}`);
       }
     } catch (e) {}
@@ -289,25 +297,42 @@ function speakWithPiper(text, modelPath, wsKey) {
 
   log(`[${wsKey}] Playing in background and auto-cleaning files when done...`);
 
-  // Python chạy phát âm thanh và tự động xóa tệp WAV và tệp PID sau khi phát xong (KHÔNG ĐỂ LẠI FILE RÁC)
-  const playPyCode = [
-    "import winsound, os",
-    `wav = r'${tempWav}'`,
-    `pid_f = r'${pidFile}'`,
-    "try:",
-    "    winsound.PlaySound(wav, winsound.SND_FILENAME)",
-    "finally:",
-    "    try: os.remove(wav)",
-    "    except: pass",
-    "    try: os.remove(pid_f)",
-    "    except: pass"
-  ].join('\n');
+  // Phát âm thanh nền tương thích đa nền tảng (tự động xóa tệp WAV và PID sau khi phát xong)
+  let player;
+  if (process.platform === 'win32') {
+    const playPyCode = [
+      "import winsound, os",
+      `wav = r'${tempWav}'`,
+      `pid_f = r'${pidFile}'`,
+      "try:",
+      "    winsound.PlaySound(wav, winsound.SND_FILENAME)",
+      "finally:",
+      "    try: os.remove(wav)",
+      "    except: pass",
+      "    try: os.remove(pid_f)",
+      "    except: pass"
+    ].join('\n');
 
-  const player = spawn('python', ['-c', playPyCode], {
-    detached: true,
-    stdio: 'ignore',
-    windowsHide: true
-  });
+    player = spawn('python', ['-c', playPyCode], {
+      detached: true,
+      stdio: 'ignore',
+      windowsHide: true
+    });
+  } else if (process.platform === 'darwin') {
+    // macOS: afplay có sẵn trong hệ thống
+    const playSh = `afplay "${tempWav}"; rm -f "${tempWav}" "${pidFile}"`;
+    player = spawn('sh', ['-c', playSh], {
+      detached: true,
+      stdio: 'ignore'
+    });
+  } else {
+    // Linux: paplay hoặc aplay
+    const playSh = `(which paplay >/dev/null 2>&1 && paplay "${tempWav}" || aplay "${tempWav}"); rm -f "${tempWav}" "${pidFile}"`;
+    player = spawn('sh', ['-c', playSh], {
+      detached: true,
+      stdio: 'ignore'
+    });
+  }
 
   if (player.pid) {
     fs.writeFileSync(pidFile, player.pid.toString(), 'utf-8');

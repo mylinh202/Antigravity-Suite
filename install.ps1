@@ -4,11 +4,28 @@
 
 Write-Host ">>> Bắt đầu cài đặt Antigravity Suite..." -ForegroundColor Cyan
 
+# 0. Kiểm tra môi trường
+Write-Host "`n--- 1. Kiểm tra môi trường thực thi ---" -ForegroundColor Yellow
+if (Get-Command node -ErrorAction SilentlyContinue) {
+    $nodeVer = node -v
+    Write-Host " [x] Node.js: $nodeVer (Sẵn sàng)" -ForegroundColor Green
+} else {
+    Write-Host " [!] Chưa tìm thấy Node.js. Vui lòng cài đặt Node.js từ https://nodejs.org/" -ForegroundColor Red
+}
+
+if (Get-Command python -ErrorAction SilentlyContinue) {
+    $pyVer = python --version
+    Write-Host " [x] Python: $pyVer (Sẵn sàng)" -ForegroundColor Green
+} else {
+    Write-Host " [!] Chưa tìm thấy Python (cần cho phát giọng đọc AI)." -ForegroundColor Yellow
+}
+
 $userHome = $env:USERPROFILE
 $userHomeForward = $userHome.Replace('\', '/')
 $scriptRoot = $PSScriptRoot
 
 # 1. Cài đặt thư mục Global .gemini
+Write-Host "`n--- 2. Cài đặt Global Rules và Hooks ---" -ForegroundColor Yellow
 $geminiDir = Join-Path $userHome ".gemini"
 $geminiConfigDir = Join-Path $geminiDir "config"
 $geminiScriptsDir = Join-Path $geminiDir "scripts"

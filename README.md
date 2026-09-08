@@ -10,7 +10,8 @@ Bộ công cụ tiêu chuẩn và toàn diện dành cho Antigravity IDE, bao g�
 antigravity-suite/
 ├── .gitignore                          # Tệp loại trừ rác, tệp tạm và nhật ký phát sinh
 ├── README.md                           # Tài liệu tổng quan và hướng dẫn sử dụng
-├── install.ps1                         # Kịch bản cài đặt tự động một click cho Windows
+├── install.ps1                         # Kịch bản cài đặt tự động cho Windows (PowerShell)
+├── install.sh                          # Kịch bản cài đặt tự động cho macOS & Linux (Bash)
 │
 ├── global/                             # Cấu hình quy chuẩn toàn cục của hệ thống
 │   ├── GEMINI.md                       # 9 luật cốt lõi và nguyên tắc làm việc chung
@@ -59,15 +60,28 @@ antigravity-suite/
 
 ## 🚀 Hướng dẫn cài đặt
 
-### Cách 1: Cài đặt tự động bằng PowerShell (Khuyên dùng)
-Chỉ cần mở PowerShell tại thư mục dự án và chạy:
+### Dành cho Windows (PowerShell)
+Mở PowerShell tại thư mục này và chạy:
 
 ```powershell
-.\install.ps1
+powershell -ExecutionPolicy Bypass -File .\install.ps1
 ```
 
-Script sẽ tự động:
-1. Sao chép và cấu hình chuẩn đường dẫn cho `GEMINI.md`, `hooks.json` và các script vào `~/.gemini/`.
-2. Cài đặt cả 2 extension vào thư mục `~/.antigravity-ide/extensions/` và `~/.vscode/extensions/`.
-3. Hoàn tất trong vài giây mà không cần thao tác thủ công.
+---
+
+### Dành cho macOS & Linux (Terminal / Bash / Zsh)
+Mở Terminal tại thư mục này và chạy:
+
+```bash
+chmod +x install.sh && ./install.sh
+```
+
+---
+
+### Kết quả tự động
+Kịch bản sẽ tự động:
+1. Kiểm tra môi trường thực thi (`Node.js`, `Python`).
+2. Sao chép và cấu hình chuẩn đường dẫn cho `GEMINI.md`, `hooks.json` và các script vào `~/.gemini/`.
+3. Cài đặt cả 2 extension vào thư mục `~/.antigravity-ide/extensions/` và `~/.vscode/extensions/`.
+4. Hoàn tất trong vài giây, chỉ cần khởi động lại IDE là dùng được ngay.
 

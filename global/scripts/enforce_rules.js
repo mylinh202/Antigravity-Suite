@@ -33,10 +33,18 @@ function killPreviousSpeech(wsKey) {
     try {
       const pid = parseInt(fs.readFileSync(pidFile, 'utf-8').trim(), 10);
       if (pid && !isNaN(pid)) {
-        spawnSync('taskkill', ['/F', '/T', '/PID', pid.toString()], {
-          stdio: 'ignore',
-          windowsHide: true
-        });
+        if (process.platform === 'win32') {
+          spawnSync('taskkill', ['/F', '/T', '/PID', pid.toString()], {
+            stdio: 'ignore',
+            windowsHide: true
+          });
+        } else {
+          try {
+            process.kill(-pid, 'SIGKILL');
+          } catch (e) {
+            try { process.kill(pid, 'SIGKILL'); } catch (e2) {}
+          }
+        }
       }
     } catch (e) {}
     try {
