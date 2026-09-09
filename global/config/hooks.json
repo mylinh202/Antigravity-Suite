@@ -14,7 +14,7 @@
     "Stop": [
       {
         "type": "command",
-        "command": "node C:/Users/Administrator/.gemini/scripts/voice_notify.js",
+        "command": "pythonw C:/Users/Administrator/.gemini/scripts/voice_notify.py",
         "timeout": 120
       }
     ]

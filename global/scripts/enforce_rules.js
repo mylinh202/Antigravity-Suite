@@ -70,7 +70,7 @@ function main() {
   const wsKey = getWorkspaceKey(rawInput);
   killPreviousSpeech(wsKey);
 
-  const reminder = "TRỌNG TÂM: Tuân thủ 9 luật cốt lõi từ global. Trước khi sửa code BẮT BUỘC tóm tắt yêu cầu & duyệt kế hoạch (việc phức tạp/nhiều file/DB phải lên plan). Kiểm chứng trước khi khẳng định, test đỏ trước khi xanh, DB an toàn, không mở chồng port server. Ở đầu mỗi câu trả lời BẮT BUỘC mở đầu bằng khối trích dẫn (>) gồm 3 đến 4 dòng bằng văn phong thuần Việt tự nhiên, KHÔNG có tiêu đề 'Tóm tắt nội dung', KHÔNG dùng gạch đầu dòng: nếu là kế hoạch bắt đầu bằng 'Dạ kế hoạch như sau: ... Mời Đại ca xem và duyệt giúp em.', nếu là hoàn thành bắt đầu bằng 'Em đã hoàn thành ... Tiếp theo mời Đại ca hãy ...'. Hạn chế tối đa từ tiếng Anh để giọng đọc phát âm mượt mà.";
+  const reminder = "TRỌNG TÂM: Tuân thủ 9 luật cốt lõi. Trước khi sửa code phải tóm tắt yêu cầu & duyệt kế hoạch. Kiểm chứng trước khi khẳng định, test đỏ trước khi xanh, DB an toàn, không mở chồng port server. Mở đầu bằng khối trích dẫn (>) thuần Việt tự nhiên, đi thẳng vào trọng tâm kỹ thuật (nguyên nhân, tệp/hàm can thiệp, kết quả test, nơi nghiệm thu), không dùng gạch đầu dòng, không rào đón sáo rỗng. Độ dài linh hoạt theo nội dung thực chất để nghe loa là hiểu ngay. Hạn chế tối đa từ tiếng Anh.";
 
   const output = {
     injectSteps: [
@@ -89,7 +89,7 @@ try {
   process.stdout.write(JSON.stringify({
     injectSteps: [
       {
-        ephemeralMessage: "TRỌNG TÂM: Tuân thủ 9 luật cốt lõi từ global. Trước khi sửa code BẮT BUỘC tóm tắt yêu cầu & duyệt kế hoạch (việc phức tạp/nhiều file/DB phải lên plan). Kiểm chứng trước khi khẳng định, test đỏ trước khi xanh, DB an toàn, không mở chồng port server. Ở đầu mỗi câu trả lời mở đầu bằng khối trích dẫn (>) văn phong thuần Việt tự nhiên, không có tiêu đề, không gạch đầu dòng."
+        ephemeralMessage: "TRỌNG TÂM: Tuân thủ 9 luật cốt lõi. Trước khi sửa code phải tóm tắt yêu cầu & duyệt kế hoạch. Mở đầu bằng khối trích dẫn (>) thuần Việt tự nhiên, đi thẳng vào dữ kiện kỹ thuật thực chất, không rào đón sáo rỗng."
       }
     ]
   }));

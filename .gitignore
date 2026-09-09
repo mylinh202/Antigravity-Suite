@@ -26,3 +26,8 @@ desktop.ini
 !.vscode/launch.json
 !.vscode/extensions.json
 .history/
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
