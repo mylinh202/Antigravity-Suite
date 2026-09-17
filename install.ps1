@@ -1,90 +1,68 @@
 # ==============================================================================
-# Script cài đặt tự động Antigravity Suite (Global Rules + Extensions)
+# Script cài đặt tổng hợp Antigravity Suite (Hỗ trợ phân tách module)
 # ==============================================================================
 
-Write-Host ">>> Bắt đầu cài đặt Antigravity Suite..." -ForegroundColor Cyan
+param (
+    [Parameter(Mandatory = $false)]
+    [ValidateSet("All", "Rules", "Voice")]
+    [string]$Type = ""
+)
 
-# 0. Kiểm tra môi trường
-Write-Host "`n--- 1. Kiểm tra môi trường thực thi ---" -ForegroundColor Yellow
-if (Get-Command node -ErrorAction SilentlyContinue) {
-    $nodeVer = node -v
-    Write-Host " [x] Node.js: $nodeVer (Sẵn sàng)" -ForegroundColor Green
-} else {
-    Write-Host " [!] Chưa tìm thấy Node.js. Vui lòng cài đặt Node.js từ https://nodejs.org/" -ForegroundColor Red
-}
-
-if (Get-Command python -ErrorAction SilentlyContinue) {
-    $pyVer = python --version
-    Write-Host " [x] Python: $pyVer (Sẵn sàng)" -ForegroundColor Green
-} else {
-    Write-Host " [!] Chưa tìm thấy Python (cần cho phát giọng đọc AI)." -ForegroundColor Yellow
-}
-
-$userHome = $env:USERPROFILE
-$userHomeForward = $userHome.Replace('\', '/')
 $scriptRoot = $PSScriptRoot
 
-# 1. Cài đặt thư mục Global .gemini
-Write-Host "`n--- 2. Cài đặt Global Rules và Hooks ---" -ForegroundColor Yellow
-$geminiDir = Join-Path $userHome ".gemini"
-$geminiConfigDir = Join-Path $geminiDir "config"
-$geminiScriptsDir = Join-Path $geminiDir "scripts"
-
-New-Item -ItemType Directory -Path $geminiConfigDir -Force | Out-Null
-New-Item -ItemType Directory -Path $geminiScriptsDir -Force | Out-Null
-
-# Sao chép GEMINI.md
-$globalRulesSrc = Join-Path $scriptRoot "global\GEMINI.md"
-$globalRulesDest = Join-Path $geminiDir "GEMINI.md"
-Copy-Item $globalRulesSrc -Destination $globalRulesDest -Force
-Write-Host " [x] Đã cập nhật Global Rules: $globalRulesDest" -ForegroundColor Green
-
-# Sao chép scripts
-Copy-Item (Join-Path $scriptRoot "global\scripts\*") -Destination $geminiScriptsDir -Recurse -Force
-Write-Host " [x] Đã cài đặt các script bổ trợ: $geminiScriptsDir" -ForegroundColor Green
-
-# Cấu hình hooks.json với đường dẫn thực tế của người dùng
-$hooksSrc = Join-Path $scriptRoot "global\config\hooks.json"
-$hooksDest = Join-Path $geminiConfigDir "hooks.json"
-$hooksContent = Get-Content $hooksSrc -Raw
-$hooksContent = $hooksContent -replace 'C:/Users/[^/]+/\.gemini', "$userHomeForward/.gemini"
-Set-Content -Path $hooksDest -Value $hooksContent -Encoding UTF8
-Write-Host " [x] Đã cấu hình Hooks tự động hóa: $hooksDest" -ForegroundColor Green
-
-# 2. Cài đặt Extensions
-$extTargetDirs = @()
-
-$antigravityExtDir = Join-Path $userHome ".antigravity-ide\extensions"
-if (Test-Path (Join-Path $userHome ".antigravity-ide")) {
-    $extTargetDirs += $antigravityExtDir
+function Run-InstallAll {
+    Write-Host "`n>>> Đang thực hiện cài đặt TOÀN BỘ Antigravity Suite..." -ForegroundColor Cyan
+    & (Join-Path $scriptRoot "install_rules.ps1")
+    Start-Sleep -Milliseconds 300
+    & (Join-Path $scriptRoot "install_voice.ps1")
 }
 
-$vscodeExtDir = Join-Path $userHome ".vscode\extensions"
-if (Test-Path (Join-Path $userHome ".vscode")) {
-    $extTargetDirs += $vscodeExtDir
+function Run-InstallRules {
+    & (Join-Path $scriptRoot "install_rules.ps1")
 }
 
-if ($extTargetDirs.Count -eq 0) {
-    $extTargetDirs += $antigravityExtDir
+function Run-InstallVoice {
+    & (Join-Path $scriptRoot "install_voice.ps1")
 }
 
-foreach ($target in $extTargetDirs) {
-    New-Item -ItemType Directory -Path $target -Force | Out-Null
-
-    # Antigravity Voice Selector
-    $voiceSrc = Join-Path $scriptRoot "extensions\antigravity-voice-selector"
-    $voiceDest = Join-Path $target "antigravity-voice-selector-1.0.0"
-    New-Item -ItemType Directory -Path $voiceDest -Force | Out-Null
-    Copy-Item "$voiceSrc\*" -Destination $voiceDest -Recurse -Force
-
-    # Antigravity Context Monitor
-    $contextSrc = Join-Path $scriptRoot "extensions\antigravity-context-monitor"
-    $contextDest = Join-Path $target "antigravity-context-monitor-1.0.0"
-    New-Item -ItemType Directory -Path $contextDest -Force | Out-Null
-    Copy-Item "$contextSrc\*" -Destination $contextDest -Recurse -Force
-
-    Write-Host " [x] Đã cài đặt 2 extension vào: $target" -ForegroundColor Green
+# 1. Nếu có truyền tham số dòng lệnh -Type
+if ($Type -eq "All") {
+    Run-InstallAll
+    exit 0
+} elseif ($Type -eq "Rules") {
+    Run-InstallRules
+    exit 0
+} elseif ($Type -eq "Voice") {
+    Run-InstallVoice
+    exit 0
 }
 
-Write-Host "`n>>> Chúc mừng! Cài đặt thành công toàn bộ Antigravity Suite." -ForegroundColor Yellow
-Write-Host ">>> Khởi động lại IDE để kích hoạt toàn diện các tính năng mới.`n" -ForegroundColor Yellow
+# 2. Nếu không truyền tham số: Hiển thị Menu tương tác trực quan
+Clear-Host
+Write-Host "============================================================" -ForegroundColor Cyan
+Write-Host "         ANTIGRAVITY SUITE - BỘ CÀI ĐẶT MÔ-ĐUN HÓA          " -ForegroundColor Yellow
+Write-Host "============================================================" -ForegroundColor Cyan
+Write-Host " Vui lòng chọn gói cài đặt bạn mong muốn:" -ForegroundColor White
+Write-Host ""
+Write-Host "  [1] Cài đặt TOÀN BỘ (Quy tắc + Giọng đọc AI + Tiện ích)" -ForegroundColor Green
+Write-Host "  [2] Chỉ cài đặt QUY TẮC (Global Rules + Context Monitor)" -ForegroundColor Cyan
+Write-Host "  [3] Chỉ cài đặt GIỌNG ĐỌC (Voice Daemon + Selector)" -ForegroundColor Magenta
+Write-Host "  [0] Thoát cài đặt" -ForegroundColor Gray
+Write-Host ""
+Write-Host "============================================================" -ForegroundColor Cyan
+
+$choice = Read-Host "Nhập lựa chọn của bạn [1/2/3/0] (Mặc định: 1)"
+
+if ([string]::IsNullOrWhiteSpace($choice) -or $choice -eq "1") {
+    Run-InstallAll
+} elseif ($choice -eq "2") {
+    Run-InstallRules
+} elseif ($choice -eq "3") {
+    Run-InstallVoice
+} elseif ($choice -eq "0") {
+    Write-Host "Đã hủy cài đặt." -ForegroundColor Yellow
+    exit 0
+} else {
+    Write-Host "Lựa chọn không hợp lệ. Đang tiến hành cài đặt toàn bộ theo mặc định..." -ForegroundColor Yellow
+    Run-InstallAll
+}
