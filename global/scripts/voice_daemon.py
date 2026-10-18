@@ -226,6 +226,7 @@ class WindowsAudioController:
     """Quản lý âm lượng và điều khiển phát sóng tạm dừng/phát tiếp toàn bộ ứng dụng hệ thống."""
     def __init__(self):
         self.is_paused = False
+        self.media_was_playing = False
         self.saved_volume = 1.0
         self.lock = threading.Lock()
 
@@ -301,12 +302,21 @@ class WindowsAudioController:
                 log(f"Error broadcasting WM_APPCOMMAND {cmd}: {e}")
 
     def fade_out_and_pause(self, duration=0.35, steps=15):
-        """Hạ nhỏ âm lượng, tạm dừng qua WinRT SMTC + Broadcast, sau đó phục hồi âm lượng chuẩn cho giọng đọc."""
+        """Kiểm tra và chỉ fade/pause nếu thực sự có nhạc đang phát; nếu không thì giữ nguyên volume cho giọng đọc."""
         with self.lock:
             current_vol = self.get_volume()
             self.saved_volume = current_vol
-            log(f"Media Fade-Out initiated. Current volume: {current_vol:.2f}")
 
+            # 1. Thử tạm dừng qua WinRT SMTC để xác định xem có media nào đang phát hay không
+            paused_any = smtc_pause_all_media()
+            self.media_was_playing = paused_any
+            self.is_paused = True
+
+            if not paused_any:
+                log("No active media playing detected. Skipping volume fade-out and keeping speech volume.")
+                return
+
+            log(f"Media Fade-Out initiated. Current volume: {current_vol:.2f}")
             if current_vol > 0.05:
                 step_delay = duration / steps
                 vol_step = current_vol / steps
@@ -317,39 +327,39 @@ class WindowsAudioController:
                     time.sleep(step_delay)
                 self.set_volume(0.0)
 
-            # 1. Tạm dừng chính thức qua WinRT SMTC
-            smtc_pause_all_media()
-
-            # 2. Phát sóng thêm lệnh PAUSE chuyên dụng
+            # Phát sóng thêm lệnh PAUSE định hướng
             self.broadcast_app_command(APPCOMMAND_MEDIA_PAUSE)
-            self.is_paused = True
 
-            # 3. Đợi 100ms cho media dừng hoàn toàn
-            time.sleep(0.1)
-
-            # 4. Trả lại âm lượng chuẩn của hệ thống để giọng đọc nói rõ ràng
+            # Đợi ngắn cho media ổn định rồi phục hồi âm lượng chuẩn cho giọng đọc
+            time.sleep(0.08)
             self.set_volume(self.saved_volume)
-            log("System Media Paused & Volume restored for speech.")
+            log("Active media paused & volume restored for speech.")
 
     def resume_and_fade_in(self, duration=0.35, steps=15):
-        """Tiếp tục phát video/nhạc qua WinRT SMTC không xung đột phím và tăng dần âm lượng từ 0 lên lại mức cũ."""
+        """Chỉ tiếp tục phát media và fade-in nếu trước đó thực sự có nhạc đang chạy."""
         with self.lock:
             if not self.is_paused:
                 return
 
+            self.is_paused = False
+
+            if not self.media_was_playing:
+                log("No media was playing prior to speech. Skipping resume & fade-in.")
+                return
+
+            self.media_was_playing = False
             log(f"Media Fade-In initiated. Restoring volume to: {self.saved_volume:.2f}")
+
             # Đưa volume về 0 trước khi gửi lệnh tiếp tục phát
             self.set_volume(0.0)
             time.sleep(0.03)
 
-            # 1. Phát tiếp qua WinRT SMTC hai lớp (Play + TogglePlayPause fallback)
+            # 1. Phát tiếp qua WinRT SMTC
             resumed = smtc_resume_all_media()
 
             # 2. Phát sóng thêm lệnh PLAY định hướng (tuyệt đối không gửi phím Toggle)
             if not resumed:
                 self.broadcast_app_command(APPCOMMAND_MEDIA_PLAY)
-
-            self.is_paused = False
 
             # 3. Tăng dần âm lượng từ 0 lên mức ban đầu
             target_vol = max(0.1, self.saved_volume)
