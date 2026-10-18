@@ -111,6 +111,20 @@ def kill_previous_speech(ws_key):
             pass
 
 
+def is_voice_enabled(workspace_path):
+    if workspace_path and os.path.exists(workspace_path):
+        settings_file = os.path.join(workspace_path, '.vscode', 'settings.json')
+        if os.path.exists(settings_file):
+            try:
+                with open(settings_file, 'r', encoding='utf-8') as f:
+                    settings = json.load(f)
+                    if 'antigravity.voiceEnabled' in settings:
+                        return bool(settings['antigravity.voiceEnabled'])
+            except Exception:
+                pass
+    return True
+
+
 def resolve_voice_model(workspace_path, workspace_name):
     chosen_voice = ''
 
@@ -478,6 +492,11 @@ def main():
 
     ws_key = get_workspace_key(workspace_name)
     log(f'[{ws_key}] Python Stop hook triggered for workspace: {workspace_name}')
+
+    # Kiểm tra cài đặt bật/tắt giọng đọc
+    if not is_voice_enabled(workspace_path):
+        log(f'[{ws_key}] Voice notification disabled in workspace settings. Skipping speech.')
+        return
 
     # Xác định mô hình và bóc tách nội dung
     model_path = resolve_voice_model(workspace_path, workspace_name)

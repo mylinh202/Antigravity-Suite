@@ -56,6 +56,10 @@ $antigravityExtDir = Join-Path $userHome ".antigravity-ide\extensions"
 if (Test-Path (Join-Path $userHome ".antigravity-ide")) {
     $extTargetDirs += $antigravityExtDir
 }
+$antigravityAltExtDir = Join-Path $userHome ".antigravity\extensions"
+if (Test-Path (Join-Path $userHome ".antigravity")) {
+    $extTargetDirs += $antigravityAltExtDir
+}
 $vscodeExtDir = Join-Path $userHome ".vscode\extensions"
 if (Test-Path (Join-Path $userHome ".vscode")) {
     $extTargetDirs += $vscodeExtDir

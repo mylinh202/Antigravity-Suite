@@ -79,6 +79,43 @@ function getWorkspaceSettingsPath() {
   return null;
 }
 
+function getVoiceEnabled() {
+  const settingsPath = getWorkspaceSettingsPath();
+  if (settingsPath && fs.existsSync(settingsPath)) {
+    try {
+      const raw = fs.readFileSync(settingsPath, 'utf8');
+      const settings = JSON.parse(raw);
+      if (settings['antigravity.voiceEnabled'] !== undefined) {
+        return Boolean(settings['antigravity.voiceEnabled']);
+      }
+    } catch (e) {}
+  }
+  return true;
+}
+
+function setVoiceEnabled(enabled) {
+  const folders = vscode.workspace.workspaceFolders;
+  if (!folders || folders.length === 0) return;
+
+  const vscodeDir = path.join(folders[0].uri.fsPath, '.vscode');
+  if (!fs.existsSync(vscodeDir)) {
+    fs.mkdirSync(vscodeDir, { recursive: true });
+  }
+
+  const settingsPath = path.join(vscodeDir, 'settings.json');
+  let settings = {};
+  if (fs.existsSync(settingsPath)) {
+    try {
+      settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+    } catch (e) {
+      settings = {};
+    }
+  }
+
+  settings['antigravity.voiceEnabled'] = Boolean(enabled);
+  fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2), 'utf8');
+}
+
 function getCurrentVoiceKey(availableVoices) {
   const settingsPath = getWorkspaceSettingsPath();
   if (settingsPath && fs.existsSync(settingsPath)) {
@@ -116,14 +153,36 @@ function saveVoiceKey(key) {
   fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2), 'utf8');
 }
 
-function updateStatusBar(voice) {
-  if (!statusBarItem) {
-    statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 105);
-    statusBarItem.command = 'antigravityVoice.selectVoice';
-    statusBarItem.tooltip = 'Nhấp chuột để đổi giọng đọc cho dự án này';
+let statusMuteItem;
+let statusVoiceItem;
+
+function updateStatusBar(voice, isEnabled) {
+  if (!statusMuteItem) {
+    statusMuteItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 106);
+    statusMuteItem.command = 'antigravityVoice.toggleVoice';
   }
-  statusBarItem.text = `$(unmute) ${voice.label}`;
-  statusBarItem.show();
+
+  if (!statusVoiceItem) {
+    statusVoiceItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 105);
+    statusVoiceItem.command = 'antigravityVoice.selectVoice';
+    statusVoiceItem.tooltip = 'Nhấp chuột để đổi giọng đọc cho dự án này';
+  }
+
+  const enabled = (isEnabled !== undefined) ? isEnabled : getVoiceEnabled();
+  statusVoiceItem.text = voice.label;
+
+  if (enabled) {
+    statusMuteItem.text = `$(unmute)`;
+    statusMuteItem.tooltip = `Giọng đọc đang BẬT - Nhấp vào đây để TẮT nhanh`;
+    statusVoiceItem.tooltip = `Giọng đọc: ${voice.label} - Nhấp để đổi giọng`;
+  } else {
+    statusMuteItem.text = `$(mute)`;
+    statusMuteItem.tooltip = `Giọng đọc đang TẮT - Nhấp vào đây để BẬT lại`;
+    statusVoiceItem.tooltip = `Giọng đọc đang tắt (${voice.label}) - Nhấp để đổi giọng`;
+  }
+
+  statusMuteItem.show();
+  statusVoiceItem.show();
 }
 
 function downloadWithPython(onnxUrl, onnxDest, jsonUrl, jsonDest, onProgress) {
@@ -242,48 +301,110 @@ function activate(context) {
   const selectVoiceCommand = vscode.commands.registerCommand('antigravityVoice.selectVoice', async () => {
     const availableVoices = getDownloadedVoices();
     const currentKey = getCurrentVoiceKey(availableVoices);
+    const isEnabled = getVoiceEnabled();
 
-    const items = availableVoices.map(v => ({
-      label: v.label,
-      description: (v.key === currentKey || (v.label === 'Ngọc Huyền' && currentKey.includes('ngochuyen'))) ? '(Đang chọn)' : '',
-      key: v.key,
-      isDownload: false
-    }));
+    const items = [];
+
+    // Tùy chọn Bật / Tắt ở đầu danh sách
+    if (isEnabled) {
+      items.push({
+        label: '$(mute) Tắt giọng đọc (Mute)',
+        description: 'Tạm ngưng thông báo giọng nói khi AI hoàn thành',
+        action: 'toggle_disable'
+      });
+    } else {
+      items.push({
+        label: '$(unmute) Bật lại giọng đọc (Unmute)',
+        description: 'Kích hoạt lại giọng đọc thông báo',
+        action: 'toggle_enable'
+      });
+    }
+
+    items.push({
+      label: '── Danh sách giọng đọc ──',
+      kind: vscode.QuickPickItemKind.Separator
+    });
+
+    for (const v of availableVoices) {
+      items.push({
+        label: v.label,
+        description: (v.key === currentKey || (v.label === 'Ngọc Huyền' && currentKey.includes('ngochuyen'))) ? '(Đang chọn)' : '',
+        key: v.key,
+        action: 'select_voice'
+      });
+    }
 
     items.push({
       label: '➕ Tải thêm giọng đọc mới...',
       description: 'Khám phá thêm các giọng đọc có sẵn trên kho',
       key: '__download__',
-      isDownload: true
+      action: 'download'
     });
 
+    const currentVoice = availableVoices.find(v => v.key === currentKey) || availableVoices[0];
+
     const selected = await vscode.window.showQuickPick(items, {
-      placeHolder: 'Chọn giọng đọc AI cho dự án này'
+      placeHolder: isEnabled ? `Giọng hiện tại: ${currentVoice.label} (Đang bật)` : 'Giọng đọc đang tắt'
     });
 
     if (selected) {
-      if (selected.isDownload) {
+      if (selected.action === 'toggle_disable') {
+        setVoiceEnabled(false);
+        updateStatusBar(currentVoice, false);
+        vscode.window.showInformationMessage('Đã tắt giọng đọc thông báo.');
+      } else if (selected.action === 'toggle_enable') {
+        setVoiceEnabled(true);
+        updateStatusBar(currentVoice, true);
+        vscode.window.showInformationMessage(`Đã bật lại giọng đọc: ${currentVoice.label}`);
+      } else if (selected.action === 'download') {
         await handleDownloadVoice();
-      } else {
+      } else if (selected.action === 'select_voice') {
         saveVoiceKey(selected.key);
-        updateStatusBar(selected);
+        updateStatusBar(selected, isEnabled);
         vscode.window.showInformationMessage(`Đã chọn giọng đọc: ${selected.label}`);
       }
     }
   });
 
+  const toggleVoiceCommand = vscode.commands.registerCommand('antigravityVoice.toggleVoice', () => {
+    const availableVoices = getDownloadedVoices();
+    const currentKey = getCurrentVoiceKey(availableVoices);
+    const currentVoice = availableVoices.find(v => v.key === currentKey) || availableVoices[0];
+    const isEnabled = getVoiceEnabled();
+
+    const newState = !isEnabled;
+    setVoiceEnabled(newState);
+    updateStatusBar(currentVoice, newState);
+
+    if (newState) {
+      vscode.window.showInformationMessage(`Đã bật giọng đọc thông báo (${currentVoice.label}).`);
+    } else {
+      vscode.window.showInformationMessage('Đã tắt giọng đọc thông báo.');
+    }
+  });
+
   context.subscriptions.push(selectVoiceCommand);
+  context.subscriptions.push(toggleVoiceCommand);
 
   const initialVoices = getDownloadedVoices();
   const currentKey = getCurrentVoiceKey(initialVoices);
   const currentVoice = initialVoices.find(v => v.key === currentKey) || initialVoices[0];
   updateStatusBar(currentVoice);
-  context.subscriptions.push(statusBarItem);
+
+  if (statusMuteItem) {
+    context.subscriptions.push(statusMuteItem);
+  }
+  if (statusVoiceItem) {
+    context.subscriptions.push(statusVoiceItem);
+  }
 }
 
 function deactivate() {
-  if (statusBarItem) {
-    statusBarItem.dispose();
+  if (statusMuteItem) {
+    statusMuteItem.dispose();
+  }
+  if (statusVoiceItem) {
+    statusVoiceItem.dispose();
   }
 }
 
