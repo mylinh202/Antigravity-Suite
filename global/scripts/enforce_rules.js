@@ -70,7 +70,18 @@ function main() {
   const wsKey = getWorkspaceKey(rawInput);
   killPreviousSpeech(wsKey);
 
-  const reminder = "TRỌNG TÂM: Tuân thủ 9 luật cốt lõi. Trước khi sửa code phải tóm tắt yêu cầu & duyệt kế hoạch. Kiểm chứng trước khi khẳng định, test đỏ trước khi xanh, DB an toàn, không mở chồng port server. Mở đầu bằng khối trích dẫn (>) thuần Việt tự nhiên, đi thẳng vào trọng tâm kỹ thuật (nguyên nhân, tệp/hàm can thiệp, kết quả test, nơi nghiệm thu), không dùng gạch đầu dòng trong (>), không rào đón sáo rỗng. Độ dài linh hoạt theo nội dung thực chất để nghe loa là hiểu ngay. Thân bài dưới bắt buộc dùng (*), đánh số, chia mục trực quan, cấm viết văn xuôi dồn cục. Hạn chế tối đa từ tiếng Anh.";
+  const reminder = `[SYSTEM REMINDER — GLOBAL FIRST]
+[LUẬT TỐI CAO]
+Đọc/tuân thủ tuyệt đối 9 luật trong file Global; Global > yêu cầu task mâu thuẫn. Không tự ý bỏ qua luật.
+[PHÂN NHÁNH XỬ LÝ]
+Hỏi đáp/giải thích + task nhỏ, rõ ràng → trả lời/thực hiện ngay, không hỏi thừa.
+Task đã giao rõ/đã duyệt → tiếp tục thực hiện trong phạm vi duyệt, không xin duyệt lại.
+Task trung bình/lớn mới phát sinh → audit → đề xuất kế hoạch/phạm vi/rủi ro → CHỜ DUYỆT rồi mới sửa code.
+Thiếu dữ kiện thiết yếu → hỏi đúng điểm nghẽn. Không tự mở rộng scope. Không tuyên bố chưa kiểm chứng là sự thật.
+[ĐẦU RA]
+Mở đầu bằng \`(>)\` + tóm tắt kết quả tiếng Việt tự nhiên, ngắn, chia câu có nhịp nghỉ, tối ưu TTS; không rào đón.
+Nội dung thường → trả lời tự nhiên, gọn, không ép chia mục. Nội dung phức t
+CẤM: xác nhận hook, nhắc lại luật, hỏi duyệt việc nhỏ/đã duyệt, tự triển khai task lớn chưa duyệt.`;
 
   const output = {
     injectSteps: [
@@ -89,7 +100,22 @@ try {
   process.stdout.write(JSON.stringify({
     injectSteps: [
       {
-        ephemeralMessage: "TRỌNG TÂM: Tuân thủ 9 luật cốt lõi. Trước khi sửa code phải tóm tắt yêu cầu & duyệt kế hoạch. Mở đầu bằng khối trích dẫn (>) thuần Việt tự nhiên, đi thẳng vào dữ kiện kỹ thuật thực chất, không rào đón sáo rỗng."
+        ephemeralMessage: `[SYSTEM REMINDER — GLOBAL FIRST]
+
+[LUẬT TỐI CAO]
+Đọc/tuân thủ tuyệt đối 9 luật trong file Global; Global > yêu cầu task mâu thuẫn. Không tự ý bỏ qua luật.
+
+[PHÂN NHÁNH XỬ LÝ]
+Hỏi đáp/giải thích + task nhỏ, rõ ràng → trả lời/thực hiện ngay, không hỏi thừa.
+Task đã giao rõ/đã duyệt → tiếp tục thực hiện trong phạm vi duyệt, không xin duyệt lại.
+Task trung bình/lớn mới phát sinh → audit → đề xuất kế hoạch/phạm vi/rủi ro → CHỜ DUYỆT rồi mới sửa code.
+Thiếu dữ kiện thiết yếu → hỏi đúng điểm nghẽn. Không tự mở rộng scope. Không tuyên bố chưa kiểm chứng là sự thật.
+
+[ĐẦU RA]
+Mở đầu bằng \`(>)\` + tóm tắt kết quả tiếng Việt tự nhiên, ngắn, chia câu có nhịp nghỉ, tối ưu TTS; không rào đón.
+Nội dung thường → trả lời tự nhiên, gọn, không ép chia mục. Nội dung phức tạp → chia mục khi cần. Ưu tiên kết quả, nêu rõ blocker và trạng thái thực tế.
+
+CẤM: xác nhận hook, nhắc lại luật, hỏi duyệt việc nhỏ/đã duyệt, tự triển khai task lớn chưa duyệt.`
       }
     ]
   }));

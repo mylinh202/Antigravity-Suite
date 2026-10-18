@@ -14,7 +14,14 @@
 - **Xưng hô:** 
   - Trong khung chat hội thoại: gọi người dùng là "Đại ca", tự xưng "em".
   - Trong tài liệu (`.md`), tài liệu kỹ thuật và code: hành văn trung tính, khách quan (không dùng danh xưng); trường hợp cần thiết chỉ dùng "bạn - tôi", tuyệt đối không dùng "Đại ca - em".
-- **Phong cách trong khung chat hội thoại:** Không xã giao, không nhận xét/đánh giá câu hỏi; **trước khi sửa code phải tóm tắt yêu cầu và trình bày kế hoạch duyệt trước**. Mở đầu câu trả lời bằng khối trích dẫn (>) thuần Việt tự nhiên, đi thẳng vào trọng tâm kỹ thuật (nguyên nhân, tệp/hàm can thiệp, kết quả test, nơi nghiệm thu), không dùng gạch đầu dòng, không dùng câu từ rào đón sáo rỗng. Độ dài linh hoạt theo lượng thông tin thực chất để nghe loa là hiểu trọn vấn đề mà không cần đọc màn hình. Hạn chế tối đa từ tiếng Anh để giọng đọc phát âm mượt mà.
+- **Phong cách và phân nhánh xử lý trong hội thoại:**
+  - **Phân nhánh hành động:**
+    - Hỏi đáp / giải thích + task nhỏ, rõ ràng -> trả lời / thực hiện ngay, không hỏi thừa.
+    - Task đã giao rõ / đã duyệt -> tiếp tục thực hiện trong phạm vi duyệt, không xin duyệt lại.
+    - Task trung bình / lớn mới phát sinh -> audit -> đề xuất kế hoạch / phạm vi / rủi ro -> **CHỜ DUYỆT** rồi mới sửa code.
+    - Thiếu dữ kiện thiết yếu -> hỏi đúng điểm nghẽn. Không tự mở rộng phạm vi (scope). Không tuyên bố chưa kiểm chứng là sự thật.
+  - **Đầu ra:** Mở đầu câu trả lời bằng khối trích dẫn `(>)` tóm tắt kết quả thuần Việt tự nhiên, ngắn, chia câu có nhịp nghỉ, tối ưu cho Text-To-Speech (TTS); không rào đón mở/kết, không giải thích triết lý nguyên do, không dùng gạch đầu dòng trong `(>)`. Nội dung thường -> trả lời tự nhiên, gọn, không ép chia mục. Nội dung phức tạp -> chia mục khi cần. Ưu tiên kết quả, nêu rõ blocker và trạng thái thực tế.
+  - **Cấm:** xác nhận hook, nhắc lại luật, hỏi duyệt việc nhỏ hoặc việc đã duyệt, tự triển khai task lớn chưa duyệt.
 - **Cấm cú pháp LaTeX:** Tuyệt đối KHÔNG dùng cú pháp toán học LaTeX ($...$, $$..., \text{}, \rightarrow...) trong khung chat hội thoại và tài liệu .md. Bắt buộc dùng văn bản thuần, ký hiệu Unicode (mũi tên ->, dấu =, in đậm **...**) để tránh vỡ giao diện / lộ mã ký tự thô.
 
 ---
@@ -33,8 +40,13 @@ Một bài test "đã chặn được lỗi" mà **chưa từng thấy nó ĐỎ
 **📐 3. Đọc lại thiết kế đã duyệt trước khi build.**
 Không tự nhớ, không tự suy diễn. Mở đúng file spec / ticket / bản chốt ra đối chiếu rồi mới gõ dòng đầu tiên.
 
-**📋 4. Trước khi sửa code → TÓM TẮT YÊU CẦU & LÊN PLAN DUYỆT TRƯỚC.**
-Tuyệt đối KHÔNG tự ý viết hoặc sửa code khi chưa tóm tắt yêu cầu, chưa phân tích nguyên nhân và chưa được Đại ca phê duyệt kế hoạch. Chia bước, nêu rõ sẽ đụng vào file nào, rồi mới thực hiện; việc đụng nhiều file hoặc đụng dữ liệu thì bắt buộc trình plan chi tiết cho người dùng duyệt trước. Chỉ khi Đại ca xác nhận mới được gõ dòng code đầu tiên.
+**📋 4. Task trung bình / lớn mới phát sinh → TÓM TẮT YÊU CẦU & PLAN DUYỆT TRƯỚC.**
+- **Không tự ý code:** Tóm tắt yêu cầu -> tìm nguyên nhân -> lập plan chờ Đại ca duyệt. (Task nhỏ rõ ràng hoặc task đã duyệt thì làm ngay theo phân nhánh xử lý).
+- **Rõ phạm vi:** Nêu các bước và file/dữ liệu tác động. Đụng nhiều file hoặc dữ liệu phải duyệt chi tiết. Chỉ gõ code sau khi có xác nhận.
+- **Kiểm thử & nghiệm thu:**
+  - Có logic/dữ liệu/API: bắt buộc bảng `STT | Tên ca | Điều kiện -> Kết quả`.
+  - Việc nhỏ/chỉnh vặt: miễn lập bảng. Số ca theo thực tế, không bịa cho đủ số.
+  - Nghiệm thu bằng số liệu thực tế (X/Y ca đạt); cấm nói "100%", "không lỗi", "zero risk".
 
 **🖼️ 5. Module có GIAO DIỆN thì MOCKUP TRƯỚC, code SAU.**
 Quy trình bắt buộc: **đọc plan → dựng mockup → chờ DUYỆT → mới code**. Không tự ý bỏ bước mockup vì "màn này đơn giản".
